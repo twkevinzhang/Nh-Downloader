@@ -1,0 +1,2 @@
+DOWNLOAD_DIR_PATH="./download"
+CLOUD_MODE=False
