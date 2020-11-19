@@ -17,18 +17,27 @@ class Session:
         }
         self.timeout = 20
 
-    def request(self, method, url, data=None,delay=0,title=None):
+    def request(self, method, url, data=None,delay=0,title=None,**kwargs):
         for i in range(RETRY_CNT):
             try:
                 if delay:time.sleep(delay)
-                return self.session.request(
-                    method,
-                    url,
-                    allow_redirects=False,
-                    data=data,
-                    timeout=self.timeout)
+                if len(kwargs)==0:
+                    return self.session.request(
+                        method,
+                        url,
+                        allow_redirects=False,
+                        data=data,
+                        timeout=self.timeout)
+                else:
+                    return self.session.request(
+                        method,
+                        url,
+                        allow_redirects=False,
+                        data=data,
+                        timeout=self.timeout,
+                        **kwargs)
             except (requests.HTTPError, requests.Timeout,requests.ConnectionError) as e:
-                logger.warning('Warning: {0}, retrying({1}) ...'.format(str(e), i))
+                logger.warning(f'Warning: {str(e)}, retrying({i}) ...')
                 pass
         logger.error("can't get res: "+title)
         return None
@@ -36,7 +45,7 @@ class Session:
 
 def make_ua():
     rrange = lambda a, b, c=1: c == 1 and random.randrange(a, b) or int(1.0 * random.randrange(a * c, b * c) / c)
-    ua = 'Mozilla/%d.0 (Windows NT %d.%d) AppleWebKit/%d (KHTML, like Gecko) Chrome/%d.%d Safari/%d' % (
+    return 'Mozilla/%d.0 (Windows NT %d.%d) AppleWebKit/%d (KHTML, like Gecko) Chrome/%d.%d Safari/%d' % (
         rrange(4, 7, 10), rrange(5, 7), rrange(0, 3), rrange(535, 538, 10),
         rrange(21, 27, 10), rrange(0, 9999, 10), rrange(535, 538, 10)
     )
