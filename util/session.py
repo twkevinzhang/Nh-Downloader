@@ -20,24 +20,21 @@ class Session:
     def request(self, method, url, data=None,delay=0,title=None,**kwargs):
         for i in range(RETRY_CNT):
             try:
-                if delay:time.sleep(delay)
-                if len(kwargs)==0:
-                    return self.session.request(
-                        method,
-                        url,
-                        allow_redirects=False,
-                        data=data,
-                        timeout=self.timeout)
-                else:
-                    return self.session.request(
+                if delay:
+                    time.sleep(delay)
+                res=self.session.request(
                         method,
                         url,
                         allow_redirects=False,
                         data=data,
                         timeout=self.timeout,
                         **kwargs)
-            except (requests.HTTPError, requests.Timeout,requests.ConnectionError) as e:
-                logger.warning(f'Warning: {str(e)}, retrying({i}) ...')
+                if res.status_code!=200:
+                    raise Exception
+                else:
+                    return res
+            except BaseException as e:
+                logger.warning(f'{url}, {str(e)}, retrying({i+1}/{RETRY_CNT}) ...')
                 pass
         logger.error("can't get res: "+title)
         return None

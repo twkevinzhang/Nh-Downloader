@@ -63,4 +63,4 @@ def isImg(name):
     return re.search(r'^\d+(\.jpg|png|gif)*$', name)
 
 def make(s) -> str:
-    return re.sub(r'([^\w\s]|\s)','',s)[:-3].lower()
+    return re.sub(r'([^\w\s]|\s)','',s).lower()
