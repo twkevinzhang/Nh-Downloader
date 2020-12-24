@@ -27,6 +27,7 @@ USE_JPN_TITLE=True
 RETRY_CNT=10
 DOWNLOAD_DIR_IN_CLOUD=config.DOWNLOAD_DIR_IN_CLOUD
 ZIP_DIR_IN_CLOUD=config.ZIP_DIR_IN_CLOUD
+IGNORED_RAR=config.IGNORED_RAR
 
 # log
 format="{time:YYYY-MM-DD HH:mm:ss} [{thread.name}]<lvl>[{level}] {function}(): {message}</>"

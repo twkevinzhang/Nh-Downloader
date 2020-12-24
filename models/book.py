@@ -67,7 +67,8 @@ class Book:
 
     def checkZip(self) ->bool:
         path=os.path.join(ZIP_DIR_PATH,check_dir_name(self.title))
-        if os.path.isfile(path+".rar"): return True # fixme
+        if IGNORED_RAR and os.path.isfile(path+".rar"):
+            return True # fixme
         path+=".zip"
         if os.path.isfile(path):
             try:
@@ -90,7 +91,8 @@ class Book:
         if os.path.isdir(self.download_path):
             if self.file_name.issubset({x for x in os.listdir(self.download_path) if os.stat(os.path.join(self.download_path,x)).st_size>1000}):
                 return True
-            logger.warning("發現舊資料不夠齊全，刪掉重載...") # fixme
+            logger.warning("發現舊資料不夠齊全，刪掉重載...")
+            raise BaseException("trap") # fixme
             shutil.rmtree(self.download_path)
         return False
 
@@ -150,12 +152,16 @@ class Book:
                 *[fetch(name) for name in self.file_name]
             )
 
-            if not self.downloaded_book(checkTemp=False):
-                logger.warning(f"圖片數量有缺: {self.title},gid:{self.gid}")
-            elif DOWNLOAD_DIR_IN_CLOUD:
-                open(DIR_LIST_TEMP_NAME, 'a', encoding='utf-8').write(
-                    getDirList(self.title) + "\n")
+
+
 
         if not self.downloaded_book():
             asyncio.run(job())
-        logger.info(f"downloaded({self.max_page}):[{self.log_option['result_page']}]{self.title}")
+
+        if not self.downloaded_book(checkTemp=False):
+            logger.warning(f"圖片數量有缺: {self.title},gid:{self.gid}")
+        else:
+            if DOWNLOAD_DIR_IN_CLOUD:
+                open(DIR_LIST_TEMP_NAME, 'a', encoding='utf-8').write(
+                    getDirList(self.title) + "\n")
+            logger.info(f"downloaded({self.max_page}):[{self.log_option['result_page']}]{self.title}")
