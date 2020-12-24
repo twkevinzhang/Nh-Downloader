@@ -1,7 +1,6 @@
 import math
 from threading import Thread
-
-from util.logger import logger
+from const import logger
 
 
 class Scheduler():

@@ -6,7 +6,7 @@ from zipfile import ZipFile, BadZipFile
 from util.project_util import *
 from util.session import Session
 from util.util import *
-from util.logger import logger
+from const import logger
 
 
 class Book:
@@ -50,13 +50,18 @@ class Book:
 
     def download(self):
         if ZIP:
-            if not (self.checkZipTemp() if ZIP_DIR_IN_CLOUD else self.checkZip()):
+            if ZIP_DIR_IN_CLOUD and self.checkZipTemp():
+                logger.info(f"在清單之中， 頁數正確({self.max_page}):[{self.log_option['result_page']}]{self.title}")
+            elif not ZIP_DIR_IN_CLOUD and self.checkZip():
+                logger.info(f"ZIP內容完整({self.max_page}):[{self.log_option['result_page']}]{self.title}")
+            else:
                 self.download_book()
                 shutil.make_archive(os.path.join(ZIP_DIR_PATH,check_dir_name(self.title)), 'zip',self.download_path)
+                logger.info(f"ZIPed({self.max_page}):[{self.log_option['result_page']}]{self.title}")
+
             if ZIP_DIR_IN_CLOUD:
                 open(ZIP_LIST_TEMP_NAME, 'a', encoding='utf-8').write(
                     getZipList(self.title) + "\n")
-            logger.info("ZIP內容完整({}):[{}]{}".format(self.max_page, self.log_option['result_page'], self.title))
         else:
             self.download_book()
 
@@ -78,14 +83,12 @@ class Book:
         for l in open(ZIP_LIST_TEMP_NAME, 'r', encoding='utf-8'):
             l = json.loads(l)
             if l["title"] == check_dir_name(self.title) and self.file_name.issubset(set(l["file_list"])):
-                logger.info("在清單之中， 頁數正確({}):[{}]{}".format(self.max_page, self.log_option['result_page'], self.title))
                 return True
         return False
 
     def checkDir(self)->bool:
         if os.path.isdir(self.download_path):
             if self.file_name.issubset({x for x in os.listdir(self.download_path) if os.stat(os.path.join(self.download_path,x)).st_size>1000}):
-                logger.info("頁數完整({}):[{}]{}".format(self.max_page, self.log_option['result_page'], self.title))
                 return True
             logger.warning("發現舊資料不夠齊全，刪掉重載...") # fixme
             shutil.rmtree(self.download_path)
@@ -97,7 +100,6 @@ class Book:
         for l in open(DIR_LIST_TEMP_NAME, 'r', encoding='utf-8'):
             l = json.loads(l)
             if l["title"] == check_dir_name(self.title) and self.file_name.issubset(set(l["file_list"])):
-                logger.info("在清單之中， 頁數正確({}):[{}]{}".format(self.max_page, self.log_option['result_page'], self.title))
                 return True
         return False
 
@@ -106,7 +108,7 @@ class Book:
 
     def download_book(self):
         async def job():
-            logger.info("[{}](pages:{}){}".format(self.log_option['result_page'], self.max_page, self.title))
+            logger.info(f"[{self.log_option['result_page']}](pages:{self.max_page}){self.title}")
             mkdir(self.download_path)
             def downloaded_img(img_title):
                 if os.path.isfile(os.path.join(self.download_path,img_title)):
@@ -114,7 +116,7 @@ class Book:
                 return False
 
             async def fetch(filename):
-                url='{}/galleries/{}/{}'.format(GALLERY_PATH, self.gid, filename)
+                url=f'{GALLERY_PATH}/galleries/{self.gid}/{filename}'
                 url=url.replace('/cover.png','')
                 if downloaded_img(filename): return
 
@@ -149,10 +151,11 @@ class Book:
             )
 
             if not self.downloaded_book(checkTemp=False):
-                book_logger(self.title, "圖片數量有缺")
+                logger.warning(f"圖片數量有缺: {self.title},gid:{self.gid}")
             elif DOWNLOAD_DIR_IN_CLOUD:
                 open(DIR_LIST_TEMP_NAME, 'a', encoding='utf-8').write(
                     getDirList(self.title) + "\n")
 
         if not self.downloaded_book():
             asyncio.run(job())
+        logger.info(f"downloaded({self.max_page}):[{self.log_option['result_page']}]{self.title}")

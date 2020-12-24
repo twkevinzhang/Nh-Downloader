@@ -2,7 +2,7 @@ import time
 import requests
 from const import *
 import random
-from util.logger import logger
+from const import logger
 
 class Session:
     def __init__(self):

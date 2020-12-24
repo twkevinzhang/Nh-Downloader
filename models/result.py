@@ -1,7 +1,7 @@
 from models.book import Book
 from util.session import Session
 from util.project_util import *
-from util.logger import logger
+from const import logger
 
 class Result:
     def __init__(self,url,start=1,end=None):
@@ -21,7 +21,7 @@ class Result:
             res=session.request("GET", new_url)
             if res is None:return
             html = res.content
-            logger.debug('page: ' + str(page) + " res.status:" + str(res))
+            logger.debug(f'page: {page}/{self.end}, res.status:{res}')
             for book in BeautifulSoup(html, 'html.parser').select('div.gallery'):
                 d=self.get_book_info(book)
                 Book(d['info_page_url'],log_option={'result_page':page}).download()
