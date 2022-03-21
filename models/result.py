@@ -1,4 +1,4 @@
-from models.book import Book
+from src.entities.Book import Book
 from util.session import Session
 from util.project_util import *
 from const import logger
