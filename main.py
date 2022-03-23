@@ -43,11 +43,4 @@ else:
             service.scrapy_images()
             zipService = ZipService(book, service.downloaded_path)
             zipService.zip()
-            print(zipService.hasZip())
-
-
-    elif inp == 'c':
-        dir_list_file_generator()
-
-    elif inp == 'd':
-        zip_list_file_generator()
+            print('hasZip?', zipService.hasZip())
