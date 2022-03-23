@@ -10,7 +10,7 @@ __version__ = 0.1
 PROJECT_NAME = "Nh-Downloader"
 
 # path
-HOST = 'https://nhentai.net/'
+HOST = 'https://nhentai.net'
 GALLERIES_PATH = "https://i.nhentai.net/galleries"
 DOWNLOAD_DIR_PATH = config.DOWNLOAD_DIR_PATH
 ZIP_DIR_PATH = config.ZIP_DIR_PATH

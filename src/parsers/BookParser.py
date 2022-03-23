@@ -1,6 +1,8 @@
+from bs4 import BeautifulSoup
+
+from const import USE_JPN_TITLE
 from src.entities.Book import Book
-from util.project_util import *
-from util.util import *
+from src.utilities.Utility import remove_suffix, remove_prefix
 
 
 class BookParser:
@@ -18,11 +20,10 @@ class BookParser:
         return book
 
     def parseGid(self) -> str:
-        # TODO: img[src^="https://"][src$="/cover.jpg"],img[src^="https://"][src$="/cover.png"]
-        return remove_suffix(
-            remove_prefix(self.soup.select_one("meta[property='og:image']")['content'], ".*/galleries/"),
-            "/cover.\w*"
-        )
+        cover = self.soup.select_one("meta[property='og:image']")['content']
+        cover = remove_prefix(cover, ".*/galleries/")
+        cover = remove_suffix(cover, "/cover.\w*")
+        return cover
 
     def parseTitle(self) -> str:
         if USE_JPN_TITLE:
@@ -36,6 +37,5 @@ class BookParser:
         return int(self.soup.select_one("div#info section#tags a[class='tag'] span.name").text)
 
     def parseImageNames(self) -> set[str]:
-        # TODO: ['1.jpg', '2.png' ...]
         return {f"{i + 1}.{ele['src'][-3:]}" for i, ele in
                 enumerate(self.soup.select('a.gallerythumb img[src^="https://"]'))}

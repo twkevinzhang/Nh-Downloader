@@ -1,8 +1,9 @@
+import os
 import grequests
 from requests.structures import CaseInsensitiveDict
 from src.entities.Book import Book
-from util.project_util import *
-from const import logger
+from const import logger, DOWNLOAD_DIR_PATH, GALLERIES_PATH
+from src.utilities.Utility import to_dir
 
 
 class BookService:
@@ -18,7 +19,7 @@ class BookService:
 
     def scrapy_images(self):
         logger.info(f"{self.log_prefix} Downloading... ")
-        mkdir(self.downloaded_path)
+        os.mkdir(self.downloaded_path)
 
         not_downloaded_images = self.book.image_names - self.get_downloaded_images()
         name_and_urls = {

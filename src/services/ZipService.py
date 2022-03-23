@@ -1,8 +1,9 @@
+import os
 import shutil
 from zipfile import ZipFile, BadZipFile
 from src.entities.Book import Book
-from util.project_util import *
-from const import logger
+from const import logger, ZIP_DIR_PATH
+from src.utilities.Utility import to_dir
 
 
 class ZipService:
