@@ -2,22 +2,22 @@ import grequests
 from bs4 import BeautifulSoup
 from requests.structures import CaseInsensitiveDict
 from src.entities.ResultItem import ResultItem
-from src.parsers.ResultPageParser import PAGE_PREFIX, ResultPageParser
+from src.parsers.ResultPageParser import ResultPageParser
 from const import logger, DOWNLOAD_DIR_PATH, GALLERIES_PATH
 
 
 class ResultService:
-    def __init__(self, headers: CaseInsensitiveDict, url: str):
+    def __init__(self, headers: CaseInsensitiveDict, urls: set[str]):
         self.headers = headers
-        self.url = url
+        self.urls = urls
         self.items: set[ResultItem] = set()
 
-    def scrapy_items(self, startPage: int, endPage: int):
+    def scrapy_items(self):
         response_list = grequests.imap(
             (grequests.get(
-                self.url + PAGE_PREFIX + str(page),
+                url,
                 headers=self.headers,
-            ) for page in range(startPage, endPage)),
+            ) for url in self.urls),
             size=10,
             # TODO: retry
             exception_handler=lambda request, exception: logger.error(f"ResultPage failed, url: {request.url} exception: {exception}")

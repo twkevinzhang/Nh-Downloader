@@ -6,7 +6,7 @@ from const import logger, DOWNLOAD_DIR_PATH, GALLERIES_PATH
 from src.utilities.Utility import to_dir
 
 
-class BookService:
+class ImageService:
     def __init__(self, headers: CaseInsensitiveDict, book: Book, downloaded_dir: str = DOWNLOAD_DIR_PATH):
         self.headers = headers
         self.book = book

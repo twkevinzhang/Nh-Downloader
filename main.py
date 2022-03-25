@@ -4,8 +4,9 @@ import grequests
 from bs4 import BeautifulSoup
 from src.parsers.BookParser import BookParser
 from src.parsers.ResultPageParser import ResultPageParser, PAGE_PREFIX
-from src.services.BookService import BookService
+from src.services.BookInfoService import BookInfoService
 from src.headers.HeadersBuilder import HeadersBuilder
+from src.services.ImageService import ImageService
 from src.services.ResultService import ResultService
 from src.services.ZipService import ZipService
 import requests
@@ -28,38 +29,30 @@ if inp == 'a':
     else:
         result_url = inp.strip()
 
-    res = requests.get(result_url, headers=headers)
-    soup = BeautifulSoup(res.content, 'html.parser')
-    parser = ResultPageParser(soup)
-    maxPage = parser.parseMaxPage()
-    service = ResultService(headers, result_url)
-    service.scrapy_items(1, 3)
-    items = service.get_items()
+    # download ResultPages
+    startPage = 1
+    endPage = 3
+    urls = {result_url + PAGE_PREFIX + str(page) for page in range(startPage, endPage)}
+    resultService = ResultService(headers, urls)
+    resultService.scrapy_items()
+    # storageService.save_items(resultService.get_items())
+    items = resultService.get_items()
 
+    # download BookInfos
+    bookInfoService = BookInfoService(headers, items)
+    bookInfoService.scrapy_book_infos()
+    # storageService.save_book_infos(bookInfoService.get_book_infos())
+    books = bookInfoService.get_book_infos()
 
-    # download
-    def hook_factory(*factory_args, **factory_kwargs):
-        def response_hook(res, *request_args, **request_kwargs):
-            soup = BeautifulSoup(res.content, 'html.parser')
-            book = BookParser(soup, factory_kwargs['bookUrl']).parse()
-            service = BookService(headers, book)
-            service.scrapy_images()
-            # TODO: multithreading
-            zipService = ZipService(book, service.downloaded_path)
-            zipService.zip()
-            return res
-        return response_hook
-    response_list = grequests.imap(
-        (grequests.get(
-            item.url,
-            headers=headers,
-            hooks={'response': [hook_factory(bookUrl=item.url)]},
-        ) for item in items),
-        size=10,
-        # TODO: retry
-        exception_handler=lambda request, exception: logger.error(f"BookInfo failed, request: ", request, "exception: ", exception)
-    )
-    [x for x in response_list]
+    for book in books:
+        # download Images
+        imageService = ImageService(headers, book)
+        imageService.scrapy_images()
+
+        # zipping
+        # TODO: multithreading
+        zipService = ZipService(book, imageService.downloaded_path)
+        zipService.zip()
 
 elif inp == 'b':
     inp = input("輸入本子的連結: ")
@@ -72,7 +65,7 @@ elif inp == 'b':
     res = requests.get(url, headers=headers)
     soup = BeautifulSoup(res.content, 'html.parser')
     book = BookParser(soup, url).parse()
-    service = BookService(headers, book)
+    service = ImageService(headers, book)
     service.scrapy_images()
     zipService = ZipService(book, service.downloaded_path)
     zipService.zip()
