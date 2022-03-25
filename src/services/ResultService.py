@@ -18,7 +18,6 @@ class ResultService:
                 url,
                 headers=self.headers,
             ) for url in self.urls),
-            size=10,
             # TODO: retry
             exception_handler=lambda request, exception: logger.error(f"ResultPage failed, url: {request.url} exception: {exception}")
         )

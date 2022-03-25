@@ -17,11 +17,14 @@ class BookInfoService:
 
     def scrapy_book_infos(self):
         def hook_factory(*factory_args, **factory_kwargs):
-            def book_info_response_hook(res, *request_args, **request_kwargs):
-                soup = BeautifulSoup(res.content, 'html.parser')
-                book = BookParser(soup, factory_kwargs['bookUrl']).parse()
-                self.book_infos.add(book)
-                return res
+            def book_info_response_hook(response, *request_args, **request_kwargs):
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    book = BookParser(soup, factory_kwargs['bookUrl']).parse()
+                    self.book_infos.add(book)
+                else:
+                    raise Exception(f'status code is {response.status_code}')
+                return response
             return book_info_response_hook
 
         response_list = grequests.imap(
@@ -30,7 +33,6 @@ class BookInfoService:
                 headers=self.headers,
                 hooks={'response': [hook_factory(bookUrl=item.url)]},
             ) for item in self.items),
-            size=10,
             # TODO: retry
             exception_handler=lambda request, exception: logger.error(f"BookInfo failed, url: {request.url} exception: {exception}")
         )

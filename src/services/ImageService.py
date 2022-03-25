@@ -29,8 +29,11 @@ class ImageService:
         # download
         def hook_factory(*factory_args, **factory_kwargs):
             def image_response_hook(response, *request_args, **request_kwargs):
-                open(os.path.join(self.downloaded_path, factory_kwargs['file_name']), 'wb').write(response.content)
-                logger.debug(f"{factory_kwargs['url']} Downloaded.")
+                if response.status_code == 200:
+                    open(os.path.join(self.downloaded_path, factory_kwargs['file_name']), 'wb').write(response.content)
+                    logger.debug(f"{factory_kwargs['url']} Downloaded.")
+                else:
+                    raise Exception(f'status code is {response.status_code}')
                 return response
             return image_response_hook
         response_list = grequests.imap(
