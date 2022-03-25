@@ -1,13 +1,9 @@
 import grequests
-import requests
 from bs4 import BeautifulSoup
 from requests.structures import CaseInsensitiveDict
-
 from src.entities.ResultItem import ResultItem
-from src.parsers.BookParser import BookParser
 from src.parsers.ResultPageParser import PAGE_PREFIX, ResultPageParser
-from src.services.BookService import BookService
-from src.services.ZipService import ZipService
+from const import logger, DOWNLOAD_DIR_PATH, GALLERIES_PATH
 
 
 class ResultService:
@@ -24,7 +20,7 @@ class ResultService:
             ) for page in range(startPage, endPage)),
             size=10,
             # TODO: retry
-            exception_handler=lambda request, exception: print(f"ResultPage{-1} failed: ", exception)
+            exception_handler=lambda request, exception: logger.error(f"ResultPage failed, url: {request.url} exception: {exception}")
         )
         for response in response_list:
             parser = ResultPageParser(BeautifulSoup(response.content, 'html.parser'))

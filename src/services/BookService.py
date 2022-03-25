@@ -28,11 +28,11 @@ class BookService:
 
         # download
         def hook_factory(*factory_args, **factory_kwargs):
-            def response_hook(response, *request_args, **request_kwargs):
+            def image_response_hook(response, *request_args, **request_kwargs):
                 open(os.path.join(self.downloaded_path, factory_kwargs['file_name']), 'wb').write(response.content)
-                logger.info(f"{factory_kwargs['url']} Downloaded.")
+                logger.debug(f"{factory_kwargs['url']} Downloaded.")
                 return response
-            return response_hook
+            return image_response_hook
         response_list = grequests.imap(
             (grequests.get(
                 url,
@@ -41,7 +41,7 @@ class BookService:
             ) for name, url in name_and_urls.items()),
             size=10,
             # TODO: retry
-            exception_handler=lambda request, exception: print(f"{self.book.title} page{-1} failed: ", exception)
+            exception_handler=lambda request, exception: logger.error(f"Image failed, url: {request.url} exception: {exception}")
         )
         # 迭代 grequests.imap 時才會呼叫 grequests.get 去發送請求
         [x for x in response_list]
