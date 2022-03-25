@@ -1,7 +1,11 @@
 import os
+import threading
+
 from const import logger, DOWNLOAD_DIR_PATH, GALLERIES_PATH
 import grequests
 from bs4 import BeautifulSoup
+
+from src.entities.Book import Book
 from src.parsers.BookParser import BookParser
 from src.parsers.ResultPageParser import ResultPageParser, PAGE_PREFIX
 from src.services.BookInfoService import BookInfoService
@@ -44,15 +48,21 @@ if inp == 'a':
     # storageService.save_book_infos(bookInfoService.get_book_infos())
     books = bookInfoService.get_book_infos()
 
+    zipping_tasks = []
     for book in books:
         # download Images
         imageService = ImageService(headers, book)
         imageService.scrapy_images()
 
         # zipping
-        # TODO: multithreading
-        zipService = ZipService(book, imageService.downloaded_path)
-        zipService.zip()
+        def zipping():
+            zipService = ZipService(book, imageService.downloaded_path)
+            zipService.zip()
+        task = threading.Thread(target=zipping, args=())
+        zipping_tasks.append(task)
+        task.start()
+
+    [x.join() for x in zipping_tasks]
 
 elif inp == 'b':
     inp = input("輸入本子的連結: ")
