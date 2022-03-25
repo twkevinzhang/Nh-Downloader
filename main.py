@@ -52,7 +52,9 @@ if inp == 'a':
     for book in books:
         # download Images
         imageService = ImageService(headers, book)
-        imageService.scrapy_images()
+        downloaded = len(imageService.get_downloaded_images()) == len(book.image_names)
+        if not downloaded:
+            imageService.scrapy_images()
 
         # zipping
         def zipping():

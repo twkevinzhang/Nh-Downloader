@@ -1,3 +1,4 @@
+import os
 import re
 
 
@@ -14,3 +15,6 @@ def remove_prefix(text, prefix) -> str:
 
 def remove_suffix(text: str, suffix) -> str:
     return re.sub(r'%s$' % suffix, '', text)
+
+def isImage(path: str) -> bool:
+    return os.path.isfile(path) and re.search(r'^\d+(\.jpg|png|gif)*$', path)

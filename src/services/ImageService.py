@@ -1,9 +1,11 @@
 import os
+import time
+
 import grequests
 from requests.structures import CaseInsensitiveDict
 from src.entities.Book import Book
 from const import logger, DOWNLOAD_DIR_PATH, GALLERIES_PATH
-from src.utilities.Utility import to_dir
+from src.utilities.Utility import to_dir, isImage
 
 
 class ImageService:
@@ -15,11 +17,14 @@ class ImageService:
         self.log_prefix = f"[Page 0]({self.book.max_page}){self.book.info_page_url[15:]}{self.book.title}"
 
     def get_downloaded_images(self) -> set[str]:
-        return {f for f in os.listdir(self.downloaded_path) if os.path.isfile(os.path.join(self.downloaded_path, f))}
+        try:
+            return {f for f in os.listdir(self.downloaded_path) if isImage(os.path.join(self.downloaded_path, f))}
+        except FileNotFoundError:
+            return set()
+
 
     def scrapy_images(self):
         logger.info(f"{self.log_prefix} Downloading... ")
-        os.mkdir(self.downloaded_path)
 
         not_downloaded_images = self.book.image_names - self.get_downloaded_images()
         name_and_urls = {
@@ -30,6 +35,7 @@ class ImageService:
         def hook_factory(*factory_args, **factory_kwargs):
             def image_response_hook(response, *request_args, **request_kwargs):
                 if response.status_code == 200:
+                    os.makedirs(self.downloaded_path, exist_ok=True)
                     open(os.path.join(self.downloaded_path, factory_kwargs['file_name']), 'wb').write(response.content)
                     logger.debug(f"{factory_kwargs['url']} Downloaded.")
                 else:
