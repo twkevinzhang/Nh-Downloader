@@ -19,6 +19,6 @@
  - run directly from source code:
 
         pip install -r requirements.txt
-        git clone https://github.com/neslxzhen/Nh-Downloader.git
+        git clone https://github.com/twkevinzhang/Nh-Downloader.git
         cd Nh-Downloader
         python main.py
